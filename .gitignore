@@ -2,6 +2,8 @@
 output/final/*.mp4
 output/audio/*.mp3
 output/temp/*.srt
+output/captions/*.srt
+output/stories/*.txt
 output/draftt/
 
 # Large assets
