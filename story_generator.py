@@ -9,20 +9,20 @@ class GreekStoryGenerator:
     def generate_story(self, topic="διατροφή και αυτοπεποίθηση", duration=60):
         """Generate a Greek story based on the given topic and duration."""
         
-        # Calculate optimal sentence count for good pacing (about 7-8 seconds per sentence)
-        # Fixed to 7 sentences to ensure completion within 60 seconds with buffer
-        optimal_sentences = 7  # Fixed number of sentences for better timing control
+        # Calculate optimal sentence count for 50-60 seconds of narration
+        # Each sentence should be 8-10 seconds when spoken in Greek
+        optimal_sentences = 12  # 12 sentences x 5 seconds = 60 seconds total
         
         prompt = f"""
         Γράψε μια συναισθηματική ιστορία ακριβώς {duration} δευτερολέπτων για {topic}.
 
         Δομή και Χρονισμός:
-        - Η ιστορία ΠΡΕΠΕΙ να έχει ΑΚΡΙΒΩΣ {optimal_sentences} προτάσεις (ΟΧΙ ΠΕΡΙΣΣΟΤΕΡΕΣ)
-        - Κάθε πρόταση να είναι 6-10 λέξεις για καλό ρυθμό αφήγησης
-        - Δομή: Εισαγωγή (2 προτάσεις) → Κύριο μέρος (3 προτάσεις) → Συμπέρασμα (2 προτάσεις)
+        - Η ιστορία ΠΡΕΠΕΙ να έχει ΑΚΡΙΒΩΣ {optimal_sentences} προτάσεις (ΟΧΙ ΠΕΡΙΣΣΟΤΕΡΕΣ, ΟΧΙ ΛΙΓΟΤΕΡΕΣ)
+        - Κάθε πρόταση να είναι 8-12 λέξεις για πλήρη ανάπτυξη
+        - Δομή: Εισαγωγή (3 προτάσεις) → Ανάπτυξη (6 προτάσεις) → Κλείσιμο (3 προτάσεις)
         - Η τελευταία πρόταση ΠΡΕΠΕΙ να είναι ολοκληρωμένη και να κλείνει την ιστορία
-        - ΚΑΘΕ πρόταση πρέπει να είναι σύντομη και περιεκτική
-        - ΚΑΘΕ πρόταση πρέπει να διαρκεί περίπου 8-9 δευτερόλεπτα
+        - ΚΑΘΕ πρόταση πρέπει να είναι πλήρης και περιεκτική
+        - ΚΑΘΕ πρόταση πρέπει να διαρκεί περίπου 5 δευτερόλεπτα όταν διαβάζεται
 
         Απαιτήσεις Περιεχομένου:
         - Απλή, ρεαλιστική και συναισθηματική ιστορία
@@ -36,6 +36,10 @@ class GreekStoryGenerator:
         - Απόφυγε μεγάλες λέξεις και περίπλοκες εκφράσεις
         - ΣΗΜΑΝΤΙΚΟ: Η ιστορία ΠΡΕΠΕΙ να τελειώνει με την {optimal_sentences}η πρόταση
         - ΣΗΜΑΝΤΙΚΟ: Η τελευταία πρόταση ΠΡΕΠΕΙ να είναι ολοκληρωμένη και να κλείνει με τελεία
+        - ΑΠΑΓΟΡΕΥΕΤΑΙ να κόψεις την ιστορία στη μέση - ΠΡΕΠΕΙ να είναι πλήρης
+        - Η ιστορία πρέπει να διαρκεί 50-60 δευτερόλεπτα όταν διαβάζεται δυνατά
+        - ΥΠΟΧΡΕΩΤΙΚΑ γράψε ΟΛΕΣ τις {optimal_sentences} προτάσεις - ΜΗΝ σταματήσεις νωρίτερα
+        - Κάθε πρόταση πρέπει να τελειώνει με τελεία και να είναι ολοκληρωμένη
 
         Επέστρεψε μόνο το κείμενο της ιστορίας, χωρίς επιπλέον εξηγήσεις ή σχόλια χρονισμού.
         """
@@ -44,10 +48,10 @@ class GreekStoryGenerator:
             response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "Είσαι ένας ειδικός συγγραφέας ελληνικών ιστοριών για social media. Δημιουργείς σύντομες, συναισθηματικές ιστορίες με ακριβή χρονισμό για βίντεο. Κάθε πρόταση είναι υπολογισμένη να διαβάζεται σε περίπου 8-9 δευτερόλεπτα. Χρησιμοποιείς μόνο απλές, σύντομες προτάσεις. Επιστρέφεις μόνο το καθαρό κείμενο της ιστορίας, χωρίς σχόλια. ΠΑΝΤΑ τελειώνεις την ιστορία με την 7η πρόταση και ΠΑΝΤΑ κλείνεις με τελεία."},
+                    {"role": "system", "content": "Είσαι ένας ειδικός συγγραφέας ελληνικών ιστοριών για social media. Δημιουργείς πλήρεις, συναισθηματικές ιστορίες 50-60 δευτερολέπτων για βίντεο. Κάθε πρόταση είναι υπολογισμένη να διαβάζεται σε περίπου 5 δευτερόλεπτα. Χρησιμοποιείς πλήρεις, περιεκτικές προτάσεις. Επιστρέφεις μόνο το καθαρό κείμενο της ιστορίας, χωρίς σχόλια. ΠΑΝΤΑ τελειώνεις την ιστορία με την 12η πρόταση και ΠΑΝΤΑ κλείνεις με τελεία. ΑΠΑΓΟΡΕΥΕΤΑΙ να κόψεις την ιστορία στη μέση."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=500,
+                max_tokens=800,
                 temperature=0.7
             )
             
@@ -60,11 +64,15 @@ class GreekStoryGenerator:
             story = re.sub(r'\s+', ' ', story)  # Fix spacing
             story = story.strip()
             
-            # Verify we have complete sentences
+            # Verify we have complete sentences - if not, regenerate
             sentences = story.split('.')
             sentences = [s.strip() for s in sentences if s.strip()]
             if len(sentences) != optimal_sentences:
                 print(f"Warning: Story has {len(sentences)} sentences instead of {optimal_sentences}")
+                # Try to regenerate with more explicit instructions
+                if len(sentences) < optimal_sentences:
+                    print("Story too short, attempting regeneration...")
+                    return self.generate_story(topic, duration)  # Retry once
             
             # Ensure the story ends with a period
             if not story.endswith('.'):

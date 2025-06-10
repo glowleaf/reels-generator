@@ -101,17 +101,19 @@ def create_final_video(srt_file, background_video, output_file):
         import re
         # Parse SRT and extract text segments
         text_segments = []
-        for line in srt_content.split('\n'):
+        lines = srt_content.split('\n')
+        for i, line in enumerate(lines):
             line = line.strip()
             if (line and 
                 not line.isdigit() and 
-                not re.match(r'\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}', line)):
+                not re.match(r'\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}', line) and
+                line != ''):
                 text_segments.append(line)
         
         # Generate new SRT with proper timing
         segment_duration = audio_duration / len(text_segments)
         
-        with open(synced_srt_file, 'w', encoding='utf-8') as f:
+        with open(synced_srt_file, 'w', encoding='utf-8', newline='') as f:
             for i, text in enumerate(text_segments):
                 start_time = i * segment_duration
                 end_time = (i + 1) * segment_duration
@@ -138,6 +140,10 @@ def create_final_video(srt_file, background_video, output_file):
     except Exception as e:
         print(f"⚠️ Could not sync timing, using original SRT: {e}")
         srt_file_path = str(srt_file).replace('\\', '/')
+    
+    # Use the synced SRT file with correct timing
+    srt_file_path = synced_srt_file.replace('\\', '/')
+    print(f"🎯 Using synced SRT file: {srt_file_path}")
 
     # Build the filter complex with subtitles - move to lower third
     print(f"🎯 Using SRT file: {srt_file_path}")
@@ -158,9 +164,7 @@ def create_final_video(srt_file, background_video, output_file):
         ffmpeg_path,
         "-i", background_video,
         "-i", audio_file,
-        "-filter_complex", f"[0:v]scale=1080:1920[scaled];[scaled]subtitles='{srt_file_path}':force_style='FontName=Segoe UI,FontSize=16,PrimaryColour=&HFFFFFF,OutlineColour=&H000000,BackColour=&H80000000,Bold=1,Outline=2,Shadow=1,Alignment=2,MarginV=400,MarginL=80,MarginR=80'[v]",
-        "-map", "[v]",
-        "-map", "1:a",
+        "-vf", f"scale=1080:1920,subtitles='{srt_file_path}':force_style='FontName=Arial,FontSize=16,PrimaryColour=&Hffffff,OutlineColour=&H000000,Bold=1,Outline=2,Alignment=2,MarginV=50'",
         "-c:v", "libx264",
         "-preset", "medium",
         "-crf", "23",
@@ -192,17 +196,30 @@ def main():
     # Input background video
     background_video = "assets/looped_background_11.mp4"
     
-    # Get only the FIRST caption file for testing
+    # Get all caption files
     caption_files = sorted(Path("output/captions").glob("captions_*.srt"))
     if not caption_files:
         print("❌ No caption files found")
         return
     
-    # Process ONLY the first caption file
-    srt_file = caption_files[0]
-    next_num = get_next_number()
-    output_file = f"output/final/final_{next_num}.mp4"
-    print(f"\n🎬 Processing ONLY {srt_file.name} for testing...")
+    # Process story 41
+    srt_file = Path("output/captions/captions_41.srt")
+    if not srt_file.exists():
+        print("❌ captions_41.srt not found")
+        return
+    # Get all existing final video numbers
+    existing_nums = []
+    for f in os.listdir("output/final"):
+        if f.startswith("final_") and f.endswith(".mp4"):
+            parts = f.replace("final_", "").replace(".mp4", "").split("_")
+            try:
+                existing_nums.append(int(parts[0]))
+            except:
+                pass
+    next_num = max(existing_nums) + 1 if existing_nums else 1
+    story_num = srt_file.stem.split('_')[1]
+    output_file = f"output/final/final_{next_num}_story_{story_num}.mp4"
+    print(f"\n🎬 Processing {srt_file.name}...")
     create_final_video(srt_file, background_video, output_file)
 
 if __name__ == "__main__":
